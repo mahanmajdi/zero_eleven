@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Daily Task Tracker</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f4f6f9;min-height:100vh;padding:1.5rem 1rem}
+.wrap{max-width:600px;margin:0 auto}
+.header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:10px}
+.title{font-size:22px;font-weight:600;color:#111}
+.subtitle{font-size:13px;color:#777;margin-top:2px}
+.badge{font-size:12px;padding:4px 12px;border-radius:8px;font-weight:500}
+.badge-student{background:#e0f2fe;color:#0369a1}
+.badge-teacher{background:#fef9c3;color:#854d0e}
+.top-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{padding:7px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:5px;font-weight:500;color:#333}
+.btn:hover{background:#f1f5f9}
+.btn-green{background:#1D9E75;color:#fff;border-color:#1D9E75}
+.btn-green:hover{background:#178a64}
+.date-bar{font-size:13px;color:#777;margin-bottom:1rem;display:flex;align-items:center;gap:5px}
+.progress-wrap{background:#fff;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.2rem;border:1px solid #e5e7eb}
+.progress-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.progress-label{font-size:13px;color:#777}
+.progress-count{font-size:14px;font-weight:600;color:#111}
+.progress-bar-bg{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+.progress-bar-fill{height:100%;border-radius:999px;background:#1D9E75;transition:width 0.4s ease}
+.task-list{display:flex;flex-direction:column;gap:10px;margin-bottom:1.2rem}
+.task-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color 0.2s,background 0.2s}
+.task-card:hover{border-color:#a3a3a3}
+.task-card.done{border-color:#1D9E75;background:#f0fdf4}
+.check-circle{width:26px;height:26px;min-width:26px;border-radius:50%;border:1.5px solid #ccc;display:flex;align-items:center;justify-content:center;transition:all 0.2s;color:transparent;font-size:14px}
+.task-card.done .check-circle{background:#1D9E75;border-color:#1D9E75;color:#fff}
+.task-info{flex:1}
+.task-name{font-size:15px;font-weight:500;color:#111;transition:color 0.2s}
+.task-card.done .task-name{color:#9ca3af;text-decoration:line-through}
+.task-time{font-size:12px;color:#9ca3af;margin-top:3px;display:flex;align-items:center;gap:5px}
+.delete-btn{background:#fee2e2;border:none;color:#e24b4a;cursor:pointer;font-size:16px;padding:7px 10px;border-radius:8px;opacity:1;transition:background 0.2s;font-weight:500}
+.delete-btn:hover{background:#fca5a5}
+.add-section{background:#fff;border-radius:12px;padding:1.25rem;border:1px solid #e5e7eb;margin-bottom:1.2rem}
+.add-title{font-size:14px;font-weight:600;color:#111;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.add-row{display:flex;gap:8px;flex-wrap:wrap}
+.add-row input{padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none;color:#111;background:#fff}
+.add-row input:focus{border-color:#1D9E75}
+.name-in{flex:2;min-width:140px}
+.time-in{flex:1;min-width:100px}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#1D9E75;display:inline-block;margin-right:4px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.sync-label{font-size:12px;color:#777;display:flex;align-items:center}
+.empty{text-align:center;padding:2.5rem;color:#9ca3af;font-size:14px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:999;padding:1rem}
+.modal{background:#fff;border-radius:16px;padding:1.75rem;width:100%;max-width:340px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
+.modal h3{font-size:18px;font-weight:600;margin-bottom:6px;color:#111}
+.modal p{font-size:13px;color:#777;margin-bottom:16px}
+.modal input{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:15px;text-align:center;letter-spacing:3px;outline:none;margin-bottom:10px;color:#111;background:#fff}
+.modal input:focus{border-color:#1D9E75}
+.modal-btns{display:flex;gap:10px}
+.modal-btns button{flex:1}
+.err{font-size:12px;color:#e24b4a;margin-bottom:10px;display:none}
+.hint{text-align:center;margin-top:0.5rem}
+.hint button{font-size:13px;color:#9ca3af;background:none;border:none;cursor:pointer}
+.hint button:hover{color:#555}
+.loading{text-align:center;padding:2rem;color:#9ca3af;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div>
+      <div class="title">Daily task tracker</div>
+      <div class="subtitle" id="day-sub"></div>
+    </div>
+    <div class="top-actions">
+      <span class="badge badge-student" id="mode-badge">Student mode</span>
+      <button class="btn" onclick="printView()"><i class="ti ti-printer"></i> Print</button>
+      <button class="btn" id="mode-btn" onclick="handleModeSwitch()"><i class="ti ti-switch-horizontal"></i> Switch</button>
+    </div>
+  </div>
+
+  <div class="date-bar">
+    <i class="ti ti-calendar"></i>
+    <span id="date-label"></span>
+    <span style="margin-left:auto" class="sync-label"><span class="sync-dot"></span> Live sync</span>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-row">
+      <span class="progress-label">Progress</span>
+      <span class="progress-count" id="progress-count">0 / 0 tasks done</span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-bar" style="width:0%"></div></div>
+  </div>
+
+  <div class="task-list" id="task-list"><div class="loading"><i class="ti ti-loader" style="font-size:24px;display:block;margin-bottom:8px"></i>Loading tasks...</div></div>
+
+  <div class="add-section" id="add-section" style="display:none">
+    <div class="add-title"><i class="ti ti-plus"></i> Add new task</div>
+    <div class="add-row">
+      <input class="name-in" type="text" id="task-name-in" placeholder="Task name..." onkeydown="if(event.key==='Enter')addTask()"/>
+      <input class="time-in" type="time" id="time-from" value="09:00"/>
+      <input class="time-in" type="time" id="time-to" value="10:00"/>
+      <button class="btn btn-green" onclick="addTask()"><i class="ti ti-plus"></i> Add</button>
+    </div>
+  </div>
+
+  <div class="hint" id="teacher-hint">
+    <button onclick="handleModeSwitch()">Teacher? Switch to edit mode →</button>
+  </div>
+</div>
+
+<!-- Welcome modal -->
+<div class="modal-overlay" id="welcome-modal">
+  <div class="modal">
+    <h3>Welcome 👋</h3>
+    <p>Are you a student or the teacher?</p>
+    <div class="modal-btns">
+      <button class="btn btn-green" onclick="closeWelcome()">I'm a student</button>
+      <button class="btn" onclick="closeWelcome();showPassModal()">I'm a teacher</button>
+    </div>
+  </div>
+</div>
+
+<!-- Password modal -->
+<div class="modal-overlay" id="pass-modal" style="display:none">
+  <div class="modal">
+    <h3>Teacher login</h3>
+    <p>Enter the password to edit tasks.</p>
+    <input type="password" id="pass-input" placeholder="Password" onkeydown="if(event.key==='Enter')checkPass()"/>
+    <div class="err" id="pass-err">Wrong password. Try again.</div>
+    <div class="modal-btns">
+      <button class="btn" onclick="hidePassModal()">Cancel</button>
+      <button class="btn btn-green" onclick="checkPass()">Enter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DB = "https://taskmanager-5f6ac-default-rtdb.firebaseio.com";
+const PASS = "teacher123";
+const TODAY = new Date().toISOString().split("T")[0];
+const TASKS_URL = `${DB}/tasks/${TODAY}.json`;
+
+let isTeacher = false;
+let tasks = {};
+
+async function loadTasks() {
+  try {
+    const res = await fetch(TASKS_URL);
+    const data = await res.json();
+    tasks = data || {};
+    if (!Object.keys(tasks).length) await seedDefaultTasks();
+    render();
+    startPolling();
+  } catch(e) {
+    document.getElementById("task-list").innerHTML = `<div class="empty">Could not connect to database. Check your internet connection.</div>`;
+  }
+}
+
+async function seedDefaultTasks() {
+  const defaults = [
+    {name:"Read chapter 3", from:"09:00", to:"10:30", done:false},
+    {name:"Math exercises", from:"10:30", to:"11:30", done:false},
+    {name:"Lunch break", from:"11:30", to:"12:00", done:false},
+    {name:"Writing assignment", from:"12:00", to:"13:30", done:false},
+    {name:"Study vocabulary", from:"13:30", to:"14:15", done:false},
+  ];
+  for (const t of defaults) {
+    const id = "t" + Date.now() + Math.random().toString(36).slice(2,6);
+    tasks[id] = t;
+    await fetch(`${DB}/tasks/${TODAY}/${id}.json`, {method:"PUT", body:JSON.stringify(t)});
+  }
+}
+
+let pollTimer;
+function startPolling() {
+  clearInterval(pollTimer);
+  pollTimer = setInterval(async () => {
+    try {
+      const res = await fetch(TASKS_URL);
+      const data = await res.json();
+      tasks = data || {};
+      render();
+    } catch(e){}
+  }, 3000);
+}
+
+function fmt(t) {
+  const [h,m] = t.split(":");
+  const hr = parseInt(h);
+  return `${hr%12||12}:${m} ${hr>=12?"PM":"AM"}`;
+}
+
+function render() {
+  const list = Object.entries(tasks);
+  const done = list.filter(([,t])=>t.done).length;
+  const total = list.length;
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById("progress-count").textContent = `${done} / ${total} tasks done`;
+  document.getElementById("progress-bar").style.width = pct + "%";
+
+  const el = document.getElementById("task-list");
+  if (!list.length) {
+    el.innerHTML = `<div class="empty"><i class="ti ti-clipboard" style="font-size:32px;display:block;margin-bottom:8px"></i>${isTeacher?"No tasks yet. Add one below!":"No tasks yet. Ask your teacher to add tasks."}</div>`;
+    return;
+  }
+  list.sort((a,b)=>a[1].from.localeCompare(b[1].from));
+  el.innerHTML = list.map(([id,t]) => `
+    <div class="task-card${t.done?" done":""}" onclick="toggleTask('${id}')" role="checkbox" aria-checked="${t.done}" tabindex="0" onkeydown="if(event.key===' ')toggleTask('${id}')">
+      <div class="check-circle"><i class="ti ti-check"></i></div>
+      <div class="task-info">
+        <div class="task-name">${t.name}</div>
+        <div class="task-time"><i class="ti ti-clock" style="font-size:13px"></i>${fmt(t.from)} – ${fmt(t.to)}</div>
+      </div>
+      ${isTeacher?`<button class="delete-btn" onclick="event.stopPropagation();deleteTask('${id}')" aria-label="Delete"><i class="ti ti-trash"></i></button>`:""}
+    </div>
+  `).join("");
+}
+
+async function toggleTask(id) {
+  if (!tasks[id]) return;
+  tasks[id].done = !tasks[id].done;
+  render();
+  await fetch(`${DB}/tasks/${TODAY}/${id}/done.json`, {method:"PUT", body:JSON.stringify(tasks[id].done)});
+}
+
+async function deleteTask(id) {
+  delete tasks[id];
+  render();
+  await fetch(`${DB}/tasks/${TODAY}/${id}.json`, {method:"DELETE"});
+}
+
+async function addTask() {
+  const name = document.getElementById("task-name-in").value.trim();
+  const from = document.getElementById("time-from").value;
+  const to = document.getElementById("time-to").value;
+  if (!name) return;
+  const id = "t" + Date.now();
+  const task = {name, from, to, done:false};
+  tasks[id] = task;
+  render();
+  await fetch(`${DB}/tasks/${TODAY}/${id}.json`, {method:"PUT", body:JSON.stringify(task)});
+  document.getElementById("task-name-in").value = "";
+}
+
+function setMode(teacher) {
+  isTeacher = teacher;
+  document.getElementById("mode-badge").textContent = teacher ? "Teacher mode" : "Student mode";
+  document.getElementById("mode-badge").className = "badge " + (teacher ? "badge-teacher" : "badge-student");
+  document.getElementById("add-section").style.display = teacher ? "block" : "none";
+  document.getElementById("teacher-hint").style.display = teacher ? "none" : "block";
+  render();
+}
+
+function handleModeSwitch() {
+  if (isTeacher) { setMode(false); } else { showPassModal(); }
+}
+
+function closeWelcome() { document.getElementById("welcome-modal").style.display = "none"; }
+function showPassModal() { document.getElementById("pass-modal").style.display = "flex"; setTimeout(()=>document.getElementById("pass-input").focus(),100); }
+function hidePassModal() { document.getElementById("pass-modal").style.display = "none"; document.getElementById("pass-err").style.display = "none"; document.getElementById("pass-input").value = ""; }
+
+function checkPass() {
+  if (document.getElementById("pass-input").value === PASS) {
+    hidePassModal();
+    setMode(true);
+  } else {
+    document.getElementById("pass-err").style.display = "block";
+  }
+}
+
+function printView() {
+  const list = Object.entries(tasks).sort((a,b)=>a[1].from.localeCompare(b[1].from));
+  const done = list.filter(([,t])=>t.done).length;
+  const w = window.open("","_blank");
+  w.document.write(`<html><head><title>Task Report</title><style>
+    body{font-family:sans-serif;padding:2rem;color:#111}
+    h1{font-size:20px;margin-bottom:4px}
+    .sub{font-size:13px;color:#777;margin-bottom:1.5rem}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th{text-align:left;border-bottom:2px solid #ddd;padding:8px 12px;color:#555;font-weight:600}
+    td{padding:8px 12px;border-bottom:1px solid #eee}
+    .done{color:#1D9E75;font-weight:600}
+    .notdone{color:#e24b4a}
+    .summary{margin-top:1.5rem;font-size:14px;color:#555}
+  </style></head><body>
+  <h1>Task report</h1>
+  <div class="sub">${new Date().toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+  <table><thead><tr><th>Task</th><th>Time</th><th>Status</th></tr></thead><tbody>
+  ${list.map(([,t])=>`<tr><td>${t.name}</td><td>${fmt(t.from)} – ${fmt(t.to)}</td><td class="${t.done?"done":"notdone"}">${t.done?"✓ Done":"✗ Not done"}</td></tr>`).join("")}
+  </tbody></table>
+  <div class="summary">Total: ${done} of ${list.length} tasks completed (${list.length?Math.round(done/list.length*100):0}%)</div>
+  </body></html>`);
+  w.document.close(); w.print();
+}
+
+const now = new Date();
+document.getElementById("date-label").textContent = now.toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById("day-sub").textContent = now.toLocaleDateString('en-GB',{weekday:'long'}) + "'s schedule";
+
+loadTasks();
+</script>
+</body>
+</html>
