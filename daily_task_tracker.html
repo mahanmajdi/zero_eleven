@@ -1,0 +1,228 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.wrap{padding:1.5rem 1rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px}
+.title{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+.subtitle{font-size:13px;color:var(--color-text-secondary);margin-top:2px}
+.badge{font-size:12px;padding:4px 12px;border-radius:var(--border-radius-md);font-weight:500}
+.badge-student{background:var(--color-background-info);color:var(--color-text-info)}
+.badge-teacher{background:var(--color-background-warning);color:var(--color-text-warning)}
+.progress-wrap{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:1.5rem;border:0.5px solid var(--color-border-tertiary)}
+.progress-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.progress-label{font-size:13px;color:var(--color-text-secondary)}
+.progress-count{font-size:15px;font-weight:500;color:var(--color-text-primary)}
+.progress-bar-bg{height:10px;background:var(--color-border-tertiary);border-radius:999px;overflow:hidden}
+.progress-bar-fill{height:100%;border-radius:999px;background:#1D9E75;transition:width 0.4s ease}
+.task-list{display:flex;flex-direction:column;gap:10px;margin-bottom:1.5rem}
+.task-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color 0.2s}
+.task-card:hover{border-color:var(--color-border-secondary)}
+.task-card.done{border-color:#1D9E75;background:var(--color-background-success, #EAF3DE)}
+.check-circle{width:26px;height:26px;min-width:26px;border-radius:50%;border:1.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;transition:all 0.2s;color:transparent}
+.task-card.done .check-circle{background:#1D9E75;border-color:#1D9E75;color:#fff}
+.task-info{flex:1}
+.task-name{font-size:15px;font-weight:500;color:var(--color-text-primary);transition:color 0.2s}
+.task-card.done .task-name{color:var(--color-text-secondary);text-decoration:line-through}
+.task-time{font-size:12px;color:var(--color-text-secondary);margin-top:3px;display:flex;align-items:center;gap:5px}
+.delete-btn{background:none;border:none;color:var(--color-text-tertiary);cursor:pointer;font-size:16px;padding:4px;border-radius:4px;display:none}
+.task-card:hover .delete-btn{display:block}
+.delete-btn:hover{color:var(--color-text-danger)}
+.add-section{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:1.25rem;border:0.5px solid var(--color-border-tertiary);margin-bottom:1.5rem}
+.add-title{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:12px}
+.add-row{display:flex;gap:10px;flex-wrap:wrap}
+.add-row input{flex:2;min-width:140px;font-size:14px}
+.add-row input.time-in{flex:1;min-width:90px}
+.add-row button{white-space:nowrap}
+.modal-bg{position:absolute;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;border-radius:var(--border-radius-lg);min-height:200px}
+.modal{background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.5rem;width:100%;max-width:340px;text-align:center}
+.modal h3{font-size:17px;font-weight:500;margin-bottom:8px}
+.modal p{font-size:13px;color:var(--color-text-secondary);margin-bottom:16px}
+.modal input{width:100%;margin-bottom:12px;font-size:15px;text-align:center;letter-spacing:3px}
+.modal-btns{display:flex;gap:10px}
+.modal-btns button{flex:1}
+.btn-primary{background:#1D9E75;color:#fff;border:none;padding:8px 16px;border-radius:var(--border-radius-md);cursor:pointer;font-size:14px;font-weight:500}
+.btn-primary:hover{opacity:0.9}
+.date-bar{font-size:13px;color:var(--color-text-secondary);margin-bottom:1.5rem;display:flex;align-items:center;gap:6px}
+.top-actions{display:flex;gap:8px}
+.print-btn{font-size:13px;display:flex;align-items:center;gap:5px}
+.empty{text-align:center;padding:2rem;color:var(--color-text-secondary);font-size:14px}
+</style>
+
+<div class="wrap" id="app">
+  <h2 class="sr-only">Daily task tracker — tick off your tasks and let your teacher add new ones</h2>
+  <div id="modal-lock" style="position:relative">
+    <div id="lock-modal" class="modal-bg">
+      <div class="modal">
+        <h3>Welcome 👋</h3>
+        <p>Enter the teacher password to switch to teacher mode, or continue as student.</p>
+        <div class="modal-btns">
+          <button class="btn-primary" onclick="closeModal()">I'm a student</button>
+          <button onclick="showPassModal()">I'm a teacher</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="pass-modal-wrap" style="position:relative;display:none">
+    <div class="modal-bg">
+      <div class="modal">
+        <h3>Teacher login</h3>
+        <p>Enter the password to edit tasks.</p>
+        <input type="password" id="pass-input" placeholder="Password" onkeydown="if(event.key==='Enter')checkPass()" />
+        <div id="pass-err" style="font-size:12px;color:var(--color-text-danger);margin-bottom:10px;display:none">Wrong password. Try again.</div>
+        <div class="modal-btns">
+          <button onclick="hidePassModal()">Cancel</button>
+          <button class="btn-primary" onclick="checkPass()">Enter</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="title">Daily task tracker</div>
+      <div class="subtitle" id="day-sub"></div>
+    </div>
+    <div class="top-actions">
+      <span class="badge" id="mode-badge">Student mode</span>
+      <button class="print-btn" onclick="printView()"><i class="ti ti-printer" aria-hidden="true"></i> Print</button>
+      <button id="mode-toggle-btn" onclick="toggleMode()">Switch mode</button>
+    </div>
+  </div>
+
+  <div class="date-bar"><i class="ti ti-calendar" aria-hidden="true"></i> <span id="date-label"></span></div>
+
+  <div class="progress-wrap">
+    <div class="progress-row">
+      <span class="progress-label">Progress</span>
+      <span class="progress-count" id="progress-count">0 / 0 tasks done</span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-bar" style="width:0%"></div></div>
+  </div>
+
+  <div class="task-list" id="task-list"></div>
+
+  <div class="add-section" id="add-section" style="display:none">
+    <div class="add-title"><i class="ti ti-plus" aria-hidden="true"></i> Add a new task</div>
+    <div class="add-row">
+      <input type="text" id="task-name-in" placeholder="Task name..." />
+      <input class="time-in" type="time" id="time-from" value="09:00" />
+      <input class="time-in" type="time" id="time-to" value="10:00" />
+      <button class="btn-primary" onclick="addTask()">Add</button>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:1rem" id="teacher-switch-hint">
+    <button style="font-size:13px;color:var(--color-text-secondary);background:none;border:none;cursor:pointer" onclick="showPassModal()">Teacher? Switch to edit mode →</button>
+  </div>
+</div>
+
+<script>
+const PASS = "teacher123";
+let isTeacher = false;
+
+let tasks = [
+  {id:1, name:"Read chapter 3", from:"09:00", to:"10:30", done:false},
+  {id:2, name:"Math exercises", from:"10:30", to:"11:30", done:false},
+  {id:3, name:"Lunch break", from:"11:30", to:"12:00", done:false},
+  {id:4, name:"Writing assignment", from:"12:00", to:"13:30", done:false},
+  {id:5, name:"Study vocabulary", from:"13:30", to:"14:15", done:false},
+];
+
+let nextId = 6;
+
+function fmt(t){const[h,m]=t.split(":");const hr=parseInt(h);const ampm=hr>=12?"PM":"AM";const h12=hr%12||12;return `${h12}:${m} ${ampm}`}
+
+function render(){
+  const done=tasks.filter(t=>t.done).length;
+  const total=tasks.length;
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById("progress-count").textContent=`${done} / ${total} tasks done`;
+  document.getElementById("progress-bar").style.width=pct+"%";
+
+  const list=document.getElementById("task-list");
+  if(!tasks.length){list.innerHTML=`<div class="empty"><i class="ti ti-clipboard" style="font-size:32px;display:block;margin-bottom:8px" aria-hidden="true"></i>No tasks yet. ${isTeacher?"Add one below!":"Ask your teacher to add tasks."}</div>`;return;}
+  list.innerHTML=tasks.map(t=>`
+    <div class="task-card${t.done?" done":""}" onclick="toggleTask(${t.id})" role="checkbox" aria-checked="${t.done}" tabindex="0" onkeydown="if(event.key===' ')toggleTask(${t.id})">
+      <div class="check-circle"><i class="ti ti-check" style="font-size:14px" aria-hidden="true"></i></div>
+      <div class="task-info">
+        <div class="task-name">${t.name}</div>
+        <div class="task-time"><i class="ti ti-clock" style="font-size:13px" aria-hidden="true"></i>${fmt(t.from)} – ${fmt(t.to)}</div>
+      </div>
+      ${isTeacher?`<button class="delete-btn" onclick="event.stopPropagation();deleteTask(${t.id})" aria-label="Delete task"><i class="ti ti-trash" aria-hidden="true"></i></button>`:""}
+    </div>
+  `).join("");
+}
+
+function toggleTask(id){
+  const t=tasks.find(x=>x.id===id);
+  if(t){t.done=!t.done;render();}
+}
+
+function deleteTask(id){
+  tasks=tasks.filter(x=>x.id!==id);render();
+}
+
+function addTask(){
+  const name=document.getElementById("task-name-in").value.trim();
+  const from=document.getElementById("time-from").value;
+  const to=document.getElementById("time-to").value;
+  if(!name)return;
+  tasks.push({id:nextId++,name,from,to,done:false});
+  document.getElementById("task-name-in").value="";
+  render();
+}
+
+function setMode(teacher){
+  isTeacher=teacher;
+  document.getElementById("mode-badge").textContent=teacher?"Teacher mode":"Student mode";
+  document.getElementById("mode-badge").className="badge "+(teacher?"badge-teacher":"badge-student");
+  document.getElementById("add-section").style.display=teacher?"block":"none";
+  document.getElementById("teacher-switch-hint").style.display=teacher?"none":"block";
+  render();
+}
+
+function toggleMode(){
+  if(isTeacher){setMode(false);}else{showPassModal();}
+}
+
+function closeModal(){document.getElementById("lock-modal").style.display="none";}
+function showPassModal(){document.getElementById("pass-modal-wrap").style.display="block";setTimeout(()=>document.getElementById("pass-input").focus(),100);}
+function hidePassModal(){document.getElementById("pass-modal-wrap").style.display="none";document.getElementById("pass-err").style.display="none";document.getElementById("pass-input").value="";}
+
+function checkPass(){
+  const v=document.getElementById("pass-input").value;
+  if(v===PASS){hidePassModal();closeModal();setMode(true);}
+  else{document.getElementById("pass-err").style.display="block";}
+}
+
+function printView(){
+  const done=tasks.filter(t=>t.done).length;
+  const w=window.open("","_blank");
+  w.document.write(`<html><head><title>Task Report</title><style>
+    body{font-family:sans-serif;padding:2rem;color:#111}
+    h1{font-size:20px;margin-bottom:4px}
+    .sub{font-size:13px;color:#777;margin-bottom:1.5rem}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th{text-align:left;border-bottom:2px solid #ddd;padding:8px 12px;color:#555;font-weight:600}
+    td{padding:8px 12px;border-bottom:1px solid #eee}
+    .done{color:#1D9E75;font-weight:600}
+    .notdone{color:#E24B4A}
+    .summary{margin-top:1.5rem;font-size:14px;color:#555}
+  </style></head><body>
+  <h1>Task report</h1>
+  <div class="sub">${new Date().toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+  <table><thead><tr><th>Task</th><th>Time</th><th>Status</th></tr></thead><tbody>
+  ${tasks.map(t=>`<tr><td>${t.name}</td><td>${fmt(t.from)} – ${fmt(t.to)}</td><td class="${t.done?"done":"notdone"}">${t.done?"✓ Done":"✗ Not done"}</td></tr>`).join("")}
+  </tbody></table>
+  <div class="summary">Total: ${done} of ${tasks.length} tasks completed (${tasks.length?Math.round(done/tasks.length*100):0}%)</div>
+  </body></html>`);
+  w.document.close();w.print();
+}
+
+const now=new Date();
+document.getElementById("date-label").textContent=now.toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById("day-sub").textContent=now.toLocaleDateString('en-GB',{weekday:'long'})+"'s schedule";
+render();
+</script>
